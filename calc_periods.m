@@ -216,7 +216,7 @@ text(peak_pos,0.95*max(pks),strcat('\leftarrow',num2str(hht_period)))
 saveas(gcf,strcat('Output/HHT/',num2str(star_no),'_',pipeline,'_','hht','.png'))
 
 %calculate HHT "noise"
-hht_noise = std(diff(allmode2(:,fmode)))/mean(fflux);
+%hht_noise = std(diff(allmode2(:,fmode)))/mean(fflux);
 hht_noise = median(abs(am(:,fmode)))/mean(fflux);
 hht_snr = hht_amp/hht_noise;
 
