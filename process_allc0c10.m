@@ -1,7 +1,7 @@
 clear all
 import matlab.io.*
 %enames= element names, elements meaning fits files
-enames = dir('/home/zechariah/Documents/Solar Analogs/K2Everest/*.fits');
+enames = dir('/home/chaise/Documents/Solar_Analogs/K2Everest/*.fits');
 %numel= number of elements
 for ii=1:numel(enames)
     temp = enames(ii).name(21:29);
@@ -13,59 +13,59 @@ fname = unique(fname);
 
 %ones creates an array of ones    
 %numel is the number of rows and 1 column 
-testc = ones(numel(fname),1);
+%testc = ones(numel(fname),1);
 for ii=1:numel(fname)
     elist(ii) = str2num(cell2mat(fname(ii)));
 end
 elist = unique(elist);
 
-scnames = dir('/home/zechariah/Documents/Solar Analogs/K2SC/*.fits');
+scnames = dir('/home/chaise/Documents/Solar_Analogs/K2SC/*.fits');
 for ii=1:numel(scnames)
     temp = scnames(ii).name(18:26);
     scname{ii} = temp;
 end
 scname = unique(scname);
 
-testc = ones(numel(scname),1);
+%testc = ones(numel(scname),1);
 for ii=1:numel(scname)
     sclist(ii) = str2num(cell2mat(scname(ii)));
 end
 sclist = unique(sclist);
 
-ffnames = dir('/home/zechariah/Documents/Solar Analogs/K2SFF/*.fits');
+ffnames = dir('/home/chaise/Documents/Solar_Analogs/K2SFF/*.fits');
 for ii=1:numel(ffnames)
     temp = ffnames(ii).name(26:34);
     ffname{ii} = temp;
 end
 ffname = unique(ffname);    
 
-testc = ones(numel(ffname),1);
+%testc = ones(numel(ffname),1);
 for ii=1:numel(ffname)
     fflist(ii) = str2num(cell2mat(ffname(ii)));
 end
 fflist = unique(fflist);
 
-prnames = dir('/home/zechariah/Documents/Solar Analogs/K2Project/LC/*.fits');
+prnames = dir('/home/chaise/Documents/Solar_Analogs/LC/*.fits');
 for ii=1:numel(prnames)
     temp = prnames(ii).name(5:13);
     prname{ii} = temp;
 end
 prname = unique(prname);
 
-testc = ones(numel(prname),1);
+%testc = ones(numel(prname),1);
 for ii=1:numel(prname)
     prlist(ii) = str2num(cell2mat(prname(ii)));
 end
 prlist = unique(prlist);
 
-fgnames = dir('/home/zechariah/Documents/Solar Analogs/K2Project/outputs/ts/*target1_ts.out');
+fgnames = dir('/home/chaise/Documents/Solar_Analogs/K2SP/*target1_ts.out');
 for ii=1:numel(fgnames)
     temp = fgnames(ii).name(13:21);
     fgname{ii} = temp;
 end
 fgname = unique(fgname);
 
-testc = ones(numel(fgname),1);
+%testc = ones(numel(fgname),1);
 for ii=1:numel(fgname)
     fglist(ii) = str2num(cell2mat(fgname(ii)));
 end
@@ -138,7 +138,7 @@ if z~=0
     %for ii=1:100
     
 
-    data = fitsread(strcat('/home/zechariah/Documents/Solar Analogs/K2Project/LC/',prxfiles{ii}),'binarytable');
+    data = fitsread(strcat('/home/chaise/Documents/Solar_Analogs/LC/',prxfiles{ii}),'binarytable');
     %remove flagged data points
     mdata = data{8};
     flag = data{10};
@@ -180,7 +180,7 @@ if z~=0
     %for ii=1:numel(exfiles)
 
     %Everest light curves
-    data = fitsread(strcat('/home/zechariah/Documents/Solar Analogs/K2Everest/',exfiles{ii}),'binarytable');
+    data = fitsread(strcat('/home/chaise/Documents/Solar_Analogs/K2Everest/',exfiles{ii}),'binarytable');
     %remove flagged data points
     time = data{6};
     mdata = data{2};
@@ -219,7 +219,7 @@ if z~=0
     %data = fitsread(strcat('/home/derek/Documents/Solar Analogs/K2SC/',scxfiles{ii}),'binarytable');
     %remove flagged data points
 
-    fptr = fits.openFile(strcat('/home/zechariah/Documents/Solar Analogs/K2SC/',scxfiles{ii}),'readonly');
+    fptr = fits.openFile(strcat('/home/chaise/Documents/Solar_Analogs/K2SC/',scxfiles{ii}),'readonly');
     %fits.getNumHDUs(fptr)
     fits.movAbsHDU(fptr,3); %HDU 3 is the SAP output; HDU 2 is the PDCMAP output
     %imgdata = readImg(fptr)
@@ -264,7 +264,7 @@ if z~=0
     %data = fitsread(strcat('/home/derek/Documents/Solar Analogs/K2SC/',scxfiles{ii}),'binarytable');
     %remove flagged data points
 
-    fptr = fits.openFile(strcat('/home/zechariah/Documents/Solar Analogs/K2SC/',scxfiles{ii}),'readonly');
+    fptr = fits.openFile(strcat('/home/chaise/Documents/Solar_Analogs/K2SC/',scxfiles{ii}),'readonly');
     %fits.getNumHDUs(fptr)
     fits.movAbsHDU(fptr,2); %HDU 3 is the SAP output; HDU 2 is the PDCMAP output
     %imgdata = readImg(fptr)
@@ -315,7 +315,7 @@ if z~=0
 
     %K2SFF light curves
     %for ii=1:numel(ffxfiles)
-    data = fitsread(strcat('/home/zechariah/Documents/Solar Analogs/K2SFF/',ffxfiles{ii}),'binarytable');
+    data = fitsread(strcat('/home/chaise/Documents/Solar_Analogs/K2SFF/',ffxfiles{ii}),'binarytable');
     %remove flagged data points
     time = data{1};
     mdata = data{3};
@@ -356,7 +356,7 @@ if z~=0
     %K2SP light curves
     %for ii=1:numel(fgxfiles)
     % strcat('/home/derek/Documents/Solar Analogs/K2Project/outputs/ts/',fgxfiles{ii})
-    data=dlmread(strcat('/home/zechariah/Documents/Solar Analogs/K2Project/outputs/ts/',fgxfiles{ii}));
+    data=dlmread(strcat('/home/chaise/Documents/Solar_Analogs/K2SP/',fgxfiles{ii}));
     %remove flagged data points
     time = data(:,1);
     mdata = data(:,3);

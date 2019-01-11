@@ -3,12 +3,12 @@ function [ls_period,wave_period,acf_period,hht_period,ls_snr,wave_snr,acf_snr,hh
 %   Detailed explanation goes here
 
 figure(199)
+set(figure(199),'visible','off');
 plot(ttime,fflux/median(fflux(~isnan(fflux))),'.k','markersize',2)
 xlabel('Time (d)','Interpreter','latex')
 ylabel('Relative Flux','Interpreter','latex')
 title(strcat(num2str(star_no),{' '},pipeline),'Interpreter','latex')
-%saveas(gcf,strcat('LC/',num2str(star_no),'_',pipeline,'.fig'))
-saveas(gcf,strcat('LC/',num2str(star_no),'_',pipeline,'.png'))
+saveas(gcf,strcat('Output/LC/',num2str(star_no),'_',pipeline,'.png'))
 
 %label and save plots with star No & type of pipeline (need to add that to
 %pass)
@@ -18,18 +18,18 @@ saveas(gcf,strcat('LC/',num2str(star_no),'_',pipeline,'.png'))
 %1. Lomb-Scargle calculation
 [P,f,alpha] = lomb(detrend(fflux(:)),ttime);
 min_freq = 2./(ttime(end)-ttime(1));
-%min_freq =0.1;
-%[aa bb] = max(P);
-[aa bb] = findpeaks(P); %find all the peaks
+%[aa, ls_loc] = max(p)
+[aa, ls_loc] = findpeaks(P); %find all the peaks
 %find all the peaks above min_freq
 %find max peak above min_freq
-[x1 x2] = find(f(bb)>min_freq); %x1 are locations within b that correspond to peaks
-[j1 j2] = max(aa(x1)); %j2 is location in aa/bb array
-bb = (bb(x1(j2))); %not working properly :(
+[x1, x2] = find(f(ls_loc)>min_freq); %x1 are locations within b that correspond to peaks
+[j1, j2] = max(aa(x1)); %j2 is location in aa/bb array
+ls_loc = (ls_loc(x1(j2))); %not working properly :(
+fmax = f(ls_loc) %Using fmax later for HHT
 
 %alpha(bb)
-if (alpha(bb) < 1e-4)
-    ls_period = 1./f(bb);
+if (alpha(ls_loc) < 1e-4)
+    ls_period = 1./f(ls_loc);
 else
     ls_period = -99;
 end
@@ -38,16 +38,16 @@ end
 
 
 figure(99)
+set(figure(99),'visible','off');
 plot(f,P)
-text(f(bb),0.95*max(P),strcat('\leftarrow',num2str(ls_period)))
-if f(bb) < 5
-    xlim([0 max(2,5*f(bb))])
+text(f(ls_loc),0.95*max(P),strcat('\leftarrow',num2str(ls_period)))
+if f(ls_loc) < 5
+    xlim([0 max(2,5*f(ls_loc))])
 end
 title(strcat(num2str(star_no),{' '},pipeline),'Interpreter','latex')
 xlabel('Frequency ($\rm c~d^{-1}$)','Interpreter','latex')
 ylabel('P','Interpreter','latex')
-%saveas(gcf,strcat('LS/',num2str(star_no),'_',pipeline,'_','ls','.fig'))
-saveas(gcf,strcat('LS/',num2str(star_no),'_',pipeline,'_','ls','.png'))
+saveas(gcf,strcat('Output/LS/',num2str(star_no),'_',pipeline,'_','ls','.png'))
 
 %calculate LS "noise"
 ls_noise = median(P);
@@ -89,6 +89,7 @@ if (ta(bb)<0)
 end
 
 figure(101)
+set(figure(101),'visible','off');
 plot(ta)
 title(strcat(num2str(star_no),{' '},pipeline),'Interpreter','latex')
 xlabel('Delay','Interpreter','latex')
@@ -97,8 +98,7 @@ ylabel('Amplitude','Interpreter','latex')
 if ta(bb)>0
     text(f(bb),0.95*max(ta),strcat('\leftarrow',num2str(acf_period)))
 end
-%saveas(gcf,strcat('ACF/',num2str(star_no),'_',pipeline,'_','acf','.fig'))
-saveas(gcf,strcat('ACF/',num2str(star_no),'_',pipeline,'_','acf','.png'))
+saveas(gcf,strcat('Output/ACF/',num2str(star_no),'_',pipeline,'_','acf','.png'))
 %calculate ACF "noise"
 acf_peak = abs(ta(locs(bb)));
 acf_noise = median(abs(ta));
@@ -149,6 +149,7 @@ wave_snr = wave_amp/wave_noise;
 %%wave amplitude not right yet... FIX
 
 figure(1001)
+set(figure(1001),'visible','off');
 imagesc(awave/max(awave(:)))
 %tempt = [ttime(1):ceil((max(ttime)-min(ttime))/6):max(ttime)];
 %pert = [period(1):ceil((max(period)-min(period))/6):max(period)];
@@ -168,8 +169,7 @@ ylabel('Period (d)')
 title(strcat(num2str(star_no),{' '},pipeline),'Interpreter','latex')
 colormap jet
 
-%saveas(gcf,strcat('Wave/',num2str(star_no),'_',pipeline,'_','wav','.fig'))
-saveas(gcf,strcat('Wave/',num2str(star_no),'_',pipeline,'_','wav','.png'))
+saveas(gcf,strcat('Output/wave/',num2str(star_no),'_',pipeline,'_','wav','.png'))
 
 %%maybe try a linear transformation and then go back to the nearest
 %%integers? IDK how to do this so it looks ok...
@@ -182,20 +182,30 @@ saveas(gcf,strcat('Wave/',num2str(star_no),'_',pipeline,'_','wav','.png'))
 allmode2 = eemd(fflux,0.1,20);
 [fm,am] = fa(allmode2,mode(diff(ttime)));
 
-%find IMF to use by means(am(:,n))
-imf_mean  = mean(am,1);
-[temp max_imf] = max(imf_mean(5:end-1));
-%[temp max_imf] = findpeaks(max(imf_mean(1:end-1));
-max_imf = max_imf+5;
+%use results from LS for HHT fm
+fm_mean = mean(fm,1);
+[afv, fmode] = min(abs(fm_mean - fmax)); %fmode is the mean fm that is closest to fmax
+imf_mean = mean(am,1);
+
+%first trial to make hisrogram %%=(lines that were commented out before)
+%%find IMF to use by means(am(:,n))
+%imf_mean  = mean(am,1);
+%[temp, max_imf] = max(imf_mean(5:end-1));
+%%[temp max_imf] = findpeaks(max(imf_mean(1:end-1));
+%max_imf = max_imf+5;
+
 figure(11)
-h = histogram(fm(:,max_imf),100,'visible','on','normalization','probability','DisplayStyle','stairs');
+%set(figure(11),'visible','off');
+h = histogram(fm(:,fmode),100,'visible','on','normalization','probability','DisplayStyle','stairs');
+%h = histogram(fm(:,max_imf),100,'visible','on','normalization','probability','DisplayStyle','stairs');
 %h = histcounts(fm(:,max_imf),100);
 [pks, locs] = findpeaks(h.Values);
 
 [temp mpk] = max(pks);
 peak_pos = mean(h.BinEdges(locs(mpk):locs(mpk)+1));
 hht_period = 1./peak_pos;
-hht_amp = imf_mean(max_imf)/mean(fflux);
+hht_amp = (imf_mean(fmode))/mean(fflux);
+%hht_amp = imf_mean(max_imf)/mean(fflux);
 
 xlabel('Frequency ($\rm c~d^{-1}$)','Interpreter','latex')
 ylabel('Relative Occurrence','Interpreter','latex')
@@ -203,12 +213,11 @@ title(strcat(num2str(star_no),{' '},pipeline),'Interpreter','latex')
 
 %text(fm(locs(mpk),max_imf),0.95*peak_pos,strcat('\leftarrow',num2str(hht_period)))
 text(peak_pos,0.95*max(pks),strcat('\leftarrow',num2str(hht_period)))
-%saveas(gcf,strcat('HHT/',num2str(star_no),'_',pipeline,'_','hht','.fig'))
-saveas(gcf,strcat('HHT/',num2str(star_no),'_',pipeline,'_','hht','.png'))
+saveas(gcf,strcat('Output/HHT/',num2str(star_no),'_',pipeline,'_','hht','.png'))
 
 %calculate HHT "noise"
-hht_noise = std(diff(allmode2(:,max_imf)))/mean(fflux);
-hht_noise = median(abs(am(:,max_imf)))/mean(fflux);
+hht_noise = std(diff(allmode2(:,fmode)))/mean(fflux);
+hht_noise = median(abs(am(:,fmode)))/mean(fflux);
 hht_snr = hht_amp/hht_noise;
 
 
